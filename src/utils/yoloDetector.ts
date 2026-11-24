@@ -1,5 +1,6 @@
 import * as ort from 'onnxruntime-web/all';
 import { DetectionResultItem } from './drawing';
+import { WORLD_CLASSES } from './worldClasses';
 
 // Configure ONNX Runtime to load wasm files locally from /ort-wasm/
 ort.env.wasm.wasmPaths = '/ort-wasm/';
@@ -43,6 +44,7 @@ export class YoloDetector {
   private inputHeight = 640;
   private isInitializing = false;
   private activeBackend: 'webgpu' | 'wasm' | null = null;
+  private activeModelName: string = 'YOLO-World';
   private lastLatency: number = 0;
   private initError: string | null = null;
 
@@ -61,6 +63,10 @@ export class YoloDetector {
     return this.activeBackend;
   }
 
+  public getModelName(): string {
+    return this.activeModelName;
+  }
+
   public getLastLatency(): number {
     return this.lastLatency;
   }
@@ -69,15 +75,16 @@ export class YoloDetector {
     return this.initError;
   }
 
-  public async init(modelPath: string = '/models/yolo11s.onnx'): Promise<void> {
+  public async init(modelPath: string = '/models/yolo_world_s.onnx'): Promise<void> {
     if (this.session || this.isInitializing) return;
     this.isInitializing = true;
     this.initError = null;
 
     try {
-      console.log(`[YOLO11] 正在加载模型文件: ${modelPath}`);
-      // Fetch buffer directly to prevent internal fetch resolution mismatch in WebView2
+      console.log(`[YOLO] 正在加载模型文件: ${modelPath}`);
       let modelBuffer: ArrayBuffer;
+      let loadedPath = modelPath;
+
       try {
         const resp = await fetch(modelPath);
         if (!resp.ok) {
@@ -85,14 +92,16 @@ export class YoloDetector {
         }
         modelBuffer = await resp.arrayBuffer();
       } catch (fetchErr) {
-        // Fallback to nano model if small model not found
-        console.warn(`[YOLO11] 加载 ${modelPath} 异常，尝试降级加载 /models/yolo11n.onnx:`, fetchErr);
-        const respNano = await fetch('/models/yolo11n.onnx');
-        if (!respNano.ok) {
-          throw new Error(`HTTP ${respNano.status} 无法获取 /models/yolo11n.onnx`);
+        console.warn(`[YOLO] 加载 ${modelPath} 失败，尝试回退加载 /models/yolo11s.onnx:`, fetchErr);
+        loadedPath = '/models/yolo11s.onnx';
+        const respFallback = await fetch('/models/yolo11s.onnx');
+        if (!respFallback.ok) {
+          throw new Error(`HTTP ${respFallback.status} 无法获取 /models/yolo11s.onnx`);
         }
-        modelBuffer = await respNano.arrayBuffer();
+        modelBuffer = await respFallback.arrayBuffer();
       }
+
+      this.activeModelName = loadedPath.includes('world') ? 'YOLO-World' : 'YOLO11';
 
       // Attempt WebGPU first for hardware acceleration, fallback to Wasm
       try {
@@ -101,20 +110,20 @@ export class YoloDetector {
           graphOptimizationLevel: 'all',
         });
         this.activeBackend = 'webgpu';
-        console.log('[YOLO11] ONNX WebGPU 会话初始化成功');
+        console.log(`[${this.activeModelName}] ONNX WebGPU 会话初始化成功`);
       } catch (gpuErr) {
-        console.warn('[YOLO11] WebGPU 启动失败，自动切换为 CPU Wasm 引擎:', gpuErr);
+        console.warn(`[${this.activeModelName}] WebGPU 启动失败，自动切换为 CPU Wasm 引擎:`, gpuErr);
         this.session = await ort.InferenceSession.create(modelBuffer, {
           executionProviders: ['wasm'],
           graphOptimizationLevel: 'all',
         });
         this.activeBackend = 'wasm';
-        console.log('[YOLO11] ONNX Wasm 会话初始化成功');
+        console.log(`[${this.activeModelName}] ONNX Wasm 会话初始化成功`);
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       this.initError = msg;
-      console.error('[YOLO11] 模型加载失败:', err);
+      console.error(`[${this.activeModelName}] 模型加载失败:`, err);
       throw err;
     } finally {
       this.isInitializing = false;
@@ -123,7 +132,7 @@ export class YoloDetector {
 
   public async detect(
     imageSource: HTMLVideoElement | HTMLCanvasElement,
-    scoreThreshold: number = 0.28,
+    scoreThreshold: number = 0.25,
     iouThreshold: number = 0.45
   ): Promise<DetectionResultItem[]> {
     if (!this.session) return [];
@@ -172,8 +181,20 @@ export class YoloDetector {
 
     this.lastLatency = Math.round(performance.now() - startTime);
 
-    // Output shape: [1, 84, 8400]
-    const numAnchors = 8400;
+    // Dynamic Output shape detection: [1, numChannels, numAnchors]
+    // where numChannels = 4 (bbox) + numClasses
+    const dims = outputTensor.dims || [1, 64, 8400];
+    const numChannels = dims[1];
+    const numClasses = numChannels - 4;
+    const numAnchors = dims[2] || 8400;
+
+    // Determine class vocabulary based on channel count
+    const classList = numClasses === WORLD_CLASSES.length
+      ? WORLD_CLASSES
+      : numClasses === COCO_CLASSES.length
+      ? COCO_CLASSES
+      : WORLD_CLASSES;
+
     const candidates: YoloBox[] = [];
 
     // 4. Parse candidates
@@ -182,7 +203,7 @@ export class YoloDetector {
       let maxScore = -1;
       let maxClassId = -1;
 
-      for (let c = 0; c < 80; c++) {
+      for (let c = 0; c < numClasses; c++) {
         const score = outputData[(4 + c) * numAnchors + col];
         if (score > maxScore) {
           maxScore = score;
@@ -209,7 +230,7 @@ export class YoloDetector {
           height: Math.min(srcHeight, origH),
           score: maxScore,
           classId: maxClassId,
-          className: COCO_CLASSES[maxClassId] || `class_${maxClassId}`,
+          className: classList[maxClassId] || `class_${maxClassId}`,
         });
       }
     }

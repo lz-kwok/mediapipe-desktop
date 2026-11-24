@@ -25,7 +25,7 @@ export default function App() {
   const [faceMode, setFaceMode] = useState<FaceRenderMode>('contour');
   const [showOrganLabels, setShowOrganLabels] = useState(true);
   const [enableObjectDetection, setEnableObjectDetection] = useState(true);
-  const [detectorEngine, setDetectorEngine] = useState<DetectorEngine>('yolo11');
+  const [detectorEngine, setDetectorEngine] = useState<DetectorEngine>('yolo-world');
   const [objectSensitivity, setObjectSensitivity] = useState<ObjectSensitivity>('medium');
   const [enableTranscriber, setEnableTranscriber] = useState(true);
 
@@ -146,7 +146,7 @@ export default function App() {
           enableObjectDetection={enableObjectDetection}
           onToggleObjectDetection={() => setEnableObjectDetection((prev) => !prev)}
           detectorEngine={detectorEngine}
-          onToggleDetectorEngine={() => setDetectorEngine((prev) => (prev === 'yolo11' ? 'mediapipe' : 'yolo11'))}
+          onToggleDetectorEngine={() => setDetectorEngine((prev) => (prev === 'yolo-world' ? 'mediapipe' : 'yolo-world'))}
           detectorInfo={detectorInfo}
           objectSensitivity={objectSensitivity}
           onChangeObjectSensitivity={(mode) => setObjectSensitivity(mode)}

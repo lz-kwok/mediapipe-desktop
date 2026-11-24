@@ -33,7 +33,7 @@ interface FloatingPillProps {
   onToggleOrganLabels: () => void;
   enableObjectDetection: boolean;
   onToggleObjectDetection: () => void;
-  detectorEngine: 'yolo11' | 'mediapipe';
+  detectorEngine: 'yolo-world' | 'yolo11' | 'mediapipe';
   onToggleDetectorEngine: () => void;
   detectorInfo?: DetectorInfo;
   objectSensitivity: 'high' | 'medium' | 'low';
@@ -265,24 +265,24 @@ export const FloatingPill: React.FC<FloatingPillProps> = ({
           <span>物品识别</span>
         </button>
 
-        {/* Detector Engine Switcher (YOLO11 vs MediaPipe) */}
+        {/* Detector Engine Switcher (YOLO-World vs MediaPipe) */}
         {enableObjectDetection && (
           <button
             onClick={onToggleDetectorEngine}
-            title="点击切换检测引擎：YOLO11（最新高精模型）/ MediaPipe（轻量）"
+            title="点击切换检测引擎：YOLO-World（60类日常随身开放词表）/ MediaPipe（轻量）"
             className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
-              detectorEngine === 'yolo11'
-                ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm shadow-orange-500/30'
+              detectorEngine !== 'mediapipe'
+                ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-sm shadow-emerald-500/30'
                 : 'bg-slate-800 text-slate-300 hover:text-white border border-slate-700'
             }`}
           >
             <span>
-              {detectorEngine === 'yolo11'
+              {detectorEngine !== 'mediapipe'
                 ? detectorInfo?.backend === 'error'
-                  ? '⚠️ YOLO11 (加载失败)'
+                  ? '⚠️ YOLO-World (异常)'
                   : detectorInfo?.backend === 'loading'
-                  ? '⏳ YOLO11 (加载中)'
-                  : `🚀 YOLO11 (${detectorInfo?.backend?.toUpperCase() || 'WASM'} · ${detectorInfo?.latency || 0}ms)`
+                  ? '⏳ YOLO-World (加载中)'
+                  : `🌐 YOLO-World (${detectorInfo?.backend?.toUpperCase() || 'WASM'} · ${detectorInfo?.latency || 0}ms)`
                 : `⚡ MediaPipe (${detectorInfo?.latency || 0}ms)`}
             </span>
           </button>

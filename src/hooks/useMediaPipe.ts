@@ -30,7 +30,7 @@ export interface DetectedGesture {
   rawTimestamp: number;
 }
 
-export type DetectorEngine = 'yolo11' | 'mediapipe';
+export type DetectorEngine = 'yolo-world' | 'yolo11' | 'mediapipe';
 
 export interface DetectorInfo {
   engine: DetectorEngine;
@@ -75,7 +75,7 @@ export function useMediaPipe(
   const [currentGesture, setCurrentGesture] = useState<DetectedGesture | null>(null);
   const [gestureHistory, setGestureHistory] = useState<DetectedGesture[]>([]);
   const [detectorInfo, setDetectorInfo] = useState<DetectorInfo>({
-    engine: options.detectorEngine || 'yolo11',
+    engine: options.detectorEngine || 'yolo-world',
     backend: 'loading',
     latency: 0,
     detectedCount: 0,
@@ -204,19 +204,21 @@ export function useMediaPipe(
       );
       gestureRecognizerRef.current = gestureRecognizer;
 
-      // 5. Load State-of-the-Art YOLO11 ONNX Detector (Small / Nano)
+      // 5. Load State-of-the-Art YOLO-World ONNX Detector (Open-Vocabulary 60 classes)
       try {
         const yolo = new YoloDetector();
-        await yolo.init('/models/yolo11s.onnx');
+        await yolo.init('/models/yolo_world_s.onnx');
         yoloDetectorRef.current = yolo;
         const activeBk = yolo.getActiveBackend() || 'wasm';
-        console.log(`[Detector] YOLO11 目标检测器已就绪 (${activeBk})`);
+        const modelName = yolo.getModelName();
+        console.log(`[Detector] ${modelName} 目标检测器已就绪 (${activeBk})`);
         setDetectorInfo((prev) => ({
           ...prev,
+          engine: modelName === 'YOLO-World' ? 'yolo-world' : 'yolo11',
           backend: activeBk,
         }));
       } catch (yoloErr) {
-        console.warn('[Detector] YOLO11 加载失败，降级使用 MediaPipe 检测器:', yoloErr);
+        console.warn('[Detector] YOLO-World 加载失败，降级使用 MediaPipe 检测器:', yoloErr);
         setDetectorInfo((prev) => ({
           ...prev,
           backend: 'error',
@@ -318,13 +320,13 @@ export function useMediaPipe(
             lastFaceResultsRef.current = null;
           }
 
-          // Object Detection Inference (Supports YOLO11 & MediaPipe)
+          // Object Detection Inference (Supports YOLO-World, YOLO11 & MediaPipe)
           if (currentOptions.enableObjectDetection) {
-            const engine = currentOptions.detectorEngine || 'yolo11';
-            const minScore = currentOptions.objectConfidenceThreshold ?? 0.28;
+            const engine = currentOptions.detectorEngine || 'yolo-world';
+            const minScore = currentOptions.objectConfidenceThreshold ?? 0.25;
             const objInferTime = performance.now();
 
-            if (engine === 'yolo11') {
+            if (engine === 'yolo-world' || engine === 'yolo11') {
               if (yoloDetectorRef.current && yoloDetectorRef.current.isReady()) {
                 if (!isYoloInferencingRef.current) {
                   isYoloInferencingRef.current = true;
@@ -343,10 +345,11 @@ export function useMediaPipe(
 
                       const backend = yoloDetectorRef.current?.getActiveBackend() || 'wasm';
                       const lat = yoloDetectorRef.current?.getLastLatency() || 0;
+                      const modelName = yoloDetectorRef.current?.getModelName() === 'YOLO-World' ? 'yolo-world' : 'yolo11';
                       const labels = updated.map((o) => translateObjectName(o.category));
 
                       setDetectorInfo({
-                        engine: 'yolo11',
+                        engine: modelName,
                         backend,
                         latency: lat,
                         detectedCount: updated.length,
@@ -354,14 +357,14 @@ export function useMediaPipe(
                       });
                     })
                     .catch((err) => {
-                      console.warn('YOLO11 推理异常:', err);
+                      console.warn('YOLO 推理异常:', err);
                     })
                     .finally(() => {
                       isYoloInferencingRef.current = false;
                     });
                 }
               } else if (objectDetectorRef.current) {
-                // If YOLO11 is not ready, run MediaPipe as temporary fallback with indication
+                // If YOLO is not ready, run MediaPipe as temporary fallback with indication
                 try {
                   const res = objectDetectorRef.current.detectForVideo(video, objInferTime);
                   lastObjectResultsRef.current = res;

@@ -4,14 +4,14 @@
 
 ![Tauri 2](https://img.shields.io/badge/Tauri-2.x-24C8DB?style=for-the-badge&logo=tauri&logoColor=white)
 ![MediaPipe](https://img.shields.io/badge/Google-MediaPipe-4285F4?style=for-the-badge&logo=google&logoColor=white)
-![YOLO11](https://img.shields.io/badge/Ultralytics-YOLO11-00FFFF?style=for-the-badge&logo=yolo&logoColor=black)
+![YOLO-World](https://img.shields.io/badge/Ultralytics-YOLO--World-00C9A7?style=for-the-badge&logo=yolo&logoColor=black)
 ![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
 <p align="center">
-  <b>基于 Tauri 2 + Google MediaPipe + Ultralytics YOLO11 开发的下一代桌面级多模态 AI 视觉感知与交互应用</b><br>
-  集成了手势骨骼、面部 3D 网格、五官气泡、双引擎物品识别（YOLO11 / MediaPipe）、手势分类 HUD 与实时语音转写。
+  <b>基于 Tauri 2 + Google MediaPipe + Ultralytics YOLO-World 开发的下一代桌面级多模态 AI 视觉感知与交互应用</b><br>
+  集成了手势骨骼、面部 3D 网格、五官气泡、开放词表日常物品识别（YOLO-World / MediaPipe）、手势分类 HUD 与实时语音转写。
 </p>
 
 </div>
@@ -20,17 +20,18 @@
 
 ## 📖 项目简介
 
-**MediaPipe Desktop Vision** 是一款采用最新 **Tauri 2** 原生桌面容器架构，结合 **Google MediaPipe Tasks** 与 **Ultralytics YOLO11** 的高性能桌面级视觉与语音感知客户端。
+**MediaPipe Desktop Vision** 是一款采用最新 **Tauri 2** 原生桌面容器架构，结合 **Google MediaPipe Tasks** 与 **Ultralytics YOLO-World** 开放词表大模型的桌面级视觉与语音感知客户端。
 
-应用完全运行在本地客户端，通过 **WebAssembly (SIMD) + WebGPU / WebGL** 实现端侧极致加速，无需依赖繁重的 Python 环境与云端接口，实现真正的 **100% 离线脱网运行**、极低内存占用与高帧率实时流畅体验。
+针对传统检测模型在日常办公/随身桌面场景中类别受限（如 COCO 数据集仅 80 类，缺乏笔、眼镜、手表、纸巾、充电器等物品）的痛点，本项目率先引入 **YOLO-World 开放词汇目标检测**，定制了 60 类高频桌面随身物品词表，无需云端 API，完全在本地客户端运行。通过 **WebAssembly (SIMD) + WebGPU / WebGL** 实现端侧极致加速，无需依赖繁重的 Python 环境，实现真正的 **100% 离线脱网运行**、极低内存占用与高帧率实时流畅体验。
 
 ---
 
 ## ✨ 核心特性
 
-### 🚀 1. 双引擎目标检测（SOTA YOLO11 + MediaPipe）
-- **YOLO11s (Small)**：集成最新近千万参数高精度 YOLO11 模型，基于 `onnxruntime-web` 的 WebGPU / Wasm 双后端运行。支持数十种日常桌面物品（手机、水杯、笔记本、键盘、鼠标、书籍等）的毫米级精准定位。
-- **MediaPipe ObjectDetector**：内置经典的 EfficientDet-Lite0 轻量级检测引擎，支持一键在胶囊栏中秒级无感切换。
+### 🚀 1. 开放词表目标检测（SOTA YOLO-World + MediaPipe）
+- **YOLO-World (v2-S)**：突破 COCO 80 类的固有限制，深度定制并离线固化了 60 类日常桌面与随身物品专有词表（如：**中性笔、眼镜、太阳镜、手表、耳机、钥匙、充电器、纸巾、咖啡杯、笔记本、水杯、剪刀、胶带**等）。
+- **极速端侧推理**：基于 `onnxruntime-web` 的 WebGPU 硬件加速与多线程 SIMD Wasm 回退，WebGPU 下延迟低至 15~25ms，Wasm 下稳定在 80~110ms。
+- **MediaPipe ObjectDetector**：内置经典 EfficientDet-Lite0 轻量级检测引擎作为秒级备用，可在胶囊栏中一键无感切换。
 - **桌面专属抗误报过滤**：智能排除对人身自身的遮挡框，并过滤手部、家具引起的 COCO 噪声幻视。
 - **EMA 跨帧平滑与首帧直显**：高置信度目标第一帧即显，配合指数移动平均（EMA）插值消抖，告别传统检测画面的剧烈闪烁。
 - **跟随气泡标牌**：带智能指向标线的发光微拟物气泡，实时展示中英文名称对照与置信度百分比。

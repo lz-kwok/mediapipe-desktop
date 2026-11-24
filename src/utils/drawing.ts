@@ -346,9 +346,11 @@ const OBJECT_CN_MAP: Record<string, string> = {
   'pen': '🖊️ 笔',
 };
 
+import { WORLD_CN_MAP } from './worldClasses';
+
 export function translateObjectName(name: string): string {
   const lower = name.toLowerCase();
-  return OBJECT_CN_MAP[lower] || `📦 ${name}`;
+  return WORLD_CN_MAP[lower] || OBJECT_CN_MAP[lower] || `📦 ${name}`;
 }
 
 // Set of classes that are typically false alarms on desktop/webcam (e.g. hands/furniture hallucination)
