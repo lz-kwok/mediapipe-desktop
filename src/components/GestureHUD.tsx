@@ -6,6 +6,7 @@ interface GestureHUDProps {
   currentGesture: DetectedGesture | null;
   gestureHistory: DetectedGesture[];
   enabled: boolean;
+  className?: string;
 }
 
 interface GestureMeta {
@@ -39,6 +40,7 @@ export const GestureHUD: React.FC<GestureHUDProps> = ({
   currentGesture,
   gestureHistory,
   enabled,
+  className = '',
 }) => {
   if (!enabled) return null;
 
@@ -47,9 +49,9 @@ export const GestureHUD: React.FC<GestureHUDProps> = ({
   const lastMeta = lastGesture ? getGestureMeta(lastGesture.categoryName) : null;
 
   return (
-    <div className="fixed top-5 right-6 z-30 flex flex-col gap-2 pointer-events-none select-none">
+    <div className={`w-[320px] pointer-events-auto select-none transition-all duration-300 ${className}`}>
       {/* Main Glassmorphism HUD Card */}
-      <div className="min-w-[260px] max-w-[320px] rounded-2xl bg-slate-900/80 backdrop-blur-md border border-cyan-500/30 p-3.5 shadow-2xl text-slate-200 transition-all duration-300">
+      <div className="w-full rounded-2xl bg-slate-900/80 backdrop-blur-2xl border border-white/10 p-3.5 shadow-[0_16px_40px_rgba(0,0,0,0.6)] text-slate-200 transition-all duration-300">
         {/* Header Bar */}
         <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-700/60">
           <div className="flex items-center gap-1.5 text-xs font-semibold text-cyan-400">

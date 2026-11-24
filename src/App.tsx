@@ -3,7 +3,7 @@ import { useCamera } from './hooks/useCamera';
 import { useMediaPipe, DetectorEngine } from './hooks/useMediaPipe';
 import { useAudioTranscriber } from './hooks/useAudioTranscriber';
 import { CameraView } from './components/CameraView';
-import { FloatingPill } from './components/FloatingPill';
+import { RightControlPanel } from './components/RightControlPanel';
 import { GestureHUD } from './components/GestureHUD';
 import { TranscriberPanel } from './components/TranscriberPanel';
 import { FaceRenderMode } from './utils/drawing';
@@ -118,44 +118,47 @@ export default function App() {
         onClearHistory={clearAudioHistory}
       />
 
-      {/* Upper Right Gesture Recognition HUD (Time, Type & History) */}
-      <GestureHUD
-        currentGesture={currentGesture}
-        gestureHistory={gestureHistory}
-        enabled={enableGestureRecognizer && isStreaming && !isModelLoading}
-      />
-
-      {/* Floating Control Capsule */}
-      {isStreaming && !isModelLoading && (
-        <FloatingPill
-          devices={devices}
-          activeDeviceId={activeDeviceId}
-          onSelectDevice={switchCamera}
-          mirrored={mirrored}
-          onToggleMirror={() => setMirrored((prev) => !prev)}
-          enableHands={enableHands}
-          onToggleHands={() => setEnableHands((prev) => !prev)}
-          enableGestureRecognizer={enableGestureRecognizer}
-          onToggleGestureRecognizer={() => setEnableGestureRecognizer((prev) => !prev)}
-          enableFace={enableFace}
-          onToggleFace={() => setEnableFace((prev) => !prev)}
-          faceMode={faceMode}
-          onToggleFaceMode={(mode) => setFaceMode(mode)}
-          showOrganLabels={showOrganLabels}
-          onToggleOrganLabels={() => setShowOrganLabels((prev) => !prev)}
-          enableObjectDetection={enableObjectDetection}
-          onToggleObjectDetection={() => setEnableObjectDetection((prev) => !prev)}
-          detectorEngine={detectorEngine}
-          onToggleDetectorEngine={() => setDetectorEngine((prev) => (prev === 'yolo-world' ? 'mediapipe' : 'yolo-world'))}
-          detectorInfo={detectorInfo}
-          objectSensitivity={objectSensitivity}
-          onChangeObjectSensitivity={(mode) => setObjectSensitivity(mode)}
-          enableTranscriber={enableTranscriber}
-          onToggleTranscriber={() => setEnableTranscriber((prev) => !prev)}
-          fps={fps}
-          latency={latency}
+      {/* Right Screen: Unified Column with Gesture Recognition HUD & Frosted Glass Control Dock */}
+      <div className="fixed top-5 right-6 z-30 flex flex-col gap-3 pointer-events-none select-none max-h-[calc(100vh-2.5rem)]">
+        {/* Upper Right Gesture Recognition HUD (Time, Type & History) */}
+        <GestureHUD
+          currentGesture={currentGesture}
+          gestureHistory={gestureHistory}
+          enabled={enableGestureRecognizer && isStreaming && !isModelLoading}
         />
-      )}
+
+        {/* Right Side Control Dock (Unified Frosted Glass Panel under Gesture HUD) */}
+        {isStreaming && !isModelLoading && (
+          <RightControlPanel
+            devices={devices}
+            activeDeviceId={activeDeviceId}
+            onSelectDevice={switchCamera}
+            mirrored={mirrored}
+            onToggleMirror={() => setMirrored((prev) => !prev)}
+            enableHands={enableHands}
+            onToggleHands={() => setEnableHands((prev) => !prev)}
+            enableGestureRecognizer={enableGestureRecognizer}
+            onToggleGestureRecognizer={() => setEnableGestureRecognizer((prev) => !prev)}
+            enableFace={enableFace}
+            onToggleFace={() => setEnableFace((prev) => !prev)}
+            faceMode={faceMode}
+            onToggleFaceMode={(mode) => setFaceMode(mode)}
+            showOrganLabels={showOrganLabels}
+            onToggleOrganLabels={() => setShowOrganLabels((prev) => !prev)}
+            enableObjectDetection={enableObjectDetection}
+            onToggleObjectDetection={() => setEnableObjectDetection((prev) => !prev)}
+            detectorEngine={detectorEngine}
+            onToggleDetectorEngine={() => setDetectorEngine((prev) => (prev === 'yolo-world' ? 'mediapipe' : 'yolo-world'))}
+            detectorInfo={detectorInfo}
+            objectSensitivity={objectSensitivity}
+            onChangeObjectSensitivity={(mode) => setObjectSensitivity(mode)}
+            enableTranscriber={enableTranscriber}
+            onToggleTranscriber={() => setEnableTranscriber((prev) => !prev)}
+            fps={fps}
+            latency={latency}
+          />
+        )}
+      </div>
     </div>
   );
 }
