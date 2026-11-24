@@ -14,20 +14,13 @@
   集成了手势骨骼、面部 3D 网格、五官气泡、开放词表日常物品识别（YOLO-World / MediaPipe）、手势分类 HUD 与实时语音转写。
 </p>
 
-<!-- 演示视频动态预览 -->
-<div align="center">
-
-### 🎬 演示视频与实测效果（已配卡点轻音乐 BGM）
-
-<img src="docs/demo-preview.gif" alt="MediaPipe Desktop Vision 实时效果演示" width="100%" style="max-height: 540px; border-radius: 12px; box-shadow: 0 12px 36px rgba(0,0,0,0.5);" />
-
-<p align="center">
-  <sub>💡 <b>提示</b>：如需在 GitHub 网页内嵌带音频的原生播放器，可将 <code>docs/demo.mp4</code> 拖入 Issue 获取 GitHub 专用 <code>user-attachments</code> 播放流链接。</sub>
-</p>
-
 </div>
 
-</div>
+---
+
+## 🎬 产品演示视频（含卡点轻音乐 BGM）
+
+https://github.com/user-attachments/assets/852a7f73-c46e-422f-8d6f-e72e87ee52ba
 
 ---
 
