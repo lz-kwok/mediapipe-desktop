@@ -4,5 +4,6 @@ dist-ssr
 *.local
 src-tauri/target
 *.mp4
+!docs/*.mp4
 *.wav
 generate_bgm.py
